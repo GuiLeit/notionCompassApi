@@ -19,6 +19,12 @@ public class NotionProperties {
     private String clientId;
     private String clientSecret;
     private String authorizationUrl;
+    private String tokenUrl;
+
+    public NotionProperties() {
+        this.authorizationUrl = "https://api.notion.com/v1/oauth/authorize";
+        this.tokenUrl = "https://api.notion.com/v1/oauth/token";
+    }
 
 }
 
