@@ -17,11 +17,14 @@ import java.time.LocalDateTime;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    @Column(nullable = true)
-    private String username;
+    @Column(nullable = false, name = "notion_user_id", unique = true)
+    private String notionUserId;
+
+    @Column(nullable = false, name = "type")
+    private String type;
 
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;

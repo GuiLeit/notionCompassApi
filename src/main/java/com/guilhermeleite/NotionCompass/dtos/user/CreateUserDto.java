@@ -2,8 +2,8 @@ package com.guilhermeleite.NotionCompass.dtos.user;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record UserDto(
+public record CreateUserDto(
         @NotBlank(message = "User ID cannot be null or empty")
-        String id,
-        String username
+        String notionId,
+        String type
 ) {}

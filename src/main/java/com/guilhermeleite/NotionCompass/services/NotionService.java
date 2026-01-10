@@ -4,14 +4,13 @@ import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.user.User;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
 import com.guilhermeleite.NotionCompass.dtos.NotionWorkspaceResponseDto;
-import com.guilhermeleite.NotionCompass.dtos.user.UserDto;
+import com.guilhermeleite.NotionCompass.dtos.user.CreateUserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Base64;
@@ -44,11 +43,10 @@ public class NotionService {
 
     public void handleOauthCallback(String code) {
         NotionWorkspaceResponseDto rawWorkpsace = this.exchangeCodeForWorkspaceData(code);
-        User user = userService.findOrCreateUser(new UserDto(
+        User user = userService.findOrCreateUser(new CreateUserDto(
                 rawWorkpsace.getOwner().getUser().getId(),
-                null
+                rawWorkpsace.getOwner().getType()
         ));
-
     }
 
     public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {

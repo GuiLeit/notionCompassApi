@@ -3,13 +3,10 @@ package com.guilhermeleite.NotionCompass.controllers;
 import com.guilhermeleite.NotionCompass.dtos.NotionCallbackRequestDto;
 import com.guilhermeleite.NotionCompass.services.NotionService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Map;
