@@ -2,6 +2,7 @@ package com.guilhermeleite.NotionCompass.services;
 
 import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.user.User;
+import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
 import com.guilhermeleite.NotionCompass.dtos.NotionWorkspaceResponseDto;
 import com.guilhermeleite.NotionCompass.dtos.user.UserDto;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +10,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -27,10 +27,11 @@ public class NotionService {
     private final UserService userService;
 
     public static URI getCallbackUri() {
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/auth/notion/callback")
-                .build()
-                .toUri();
+        return URI.create("https://zealous-aurora-13.webhook.cool");
+//        return ServletUriComponentsBuilder.fromCurrentContextPath()
+//                .path("/api/auth/notion/callback")
+//                .build()
+//                .toUri();
     }
 
     public URI buildAuthorizationUri() {
@@ -74,8 +75,14 @@ public class NotionService {
                     request,
                     NotionWorkspaceResponseDto.class
             );
+        } catch (HttpClientErrorException e) {
+            throw new WorkspaceRequestException("Invalid authorization code or client credentials: " + e.getStatusCode(), e);
+        } catch (HttpServerErrorException e) {
+            throw new WorkspaceRequestException("Notion API server error: " + e.getStatusCode(), e);
+        } catch (ResourceAccessException e) {
+            throw new WorkspaceRequestException("Failed to connect to Notion API", e);
         } catch (RestClientException e) {
-            throw new RuntimeException("Failed to exchange code for token", e);
+            throw new WorkspaceRequestException("Invalid authorization code: " + e.getLocalizedMessage(), e);
         }
 
     }

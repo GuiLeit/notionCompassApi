@@ -31,7 +31,7 @@ public class NotionOauthController {
 
     @GetMapping("/callback")
     public ResponseEntity<?> callback(@Valid @ModelAttribute NotionCallbackRequestDto request) {
-
+        notionService.handleOauthCallback(request.getCode());
         return ResponseEntity.ok(Map.of("code", request.getCode()));
     }
 }
