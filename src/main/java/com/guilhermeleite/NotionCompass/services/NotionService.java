@@ -5,6 +5,7 @@ import com.guilhermeleite.NotionCompass.domains.user.User;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
 import com.guilhermeleite.NotionCompass.dtos.NotionWorkspaceResponseDto;
 import com.guilhermeleite.NotionCompass.dtos.user.CreateUserDto;
+import com.guilhermeleite.NotionCompass.dtos.workspace.CreateWorkspaceDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +25,7 @@ public class NotionService {
     private final NotionProperties notionProperties;
     private final RestTemplate restTemplate;
     private final UserService userService;
+    private final WorkspaceService workspaceService;
 
     public static URI getCallbackUri() {
         return URI.create("https://zealous-aurora-13.webhook.cool");
@@ -47,6 +49,16 @@ public class NotionService {
                 rawWorkpsace.getOwner().getUser().getId(),
                 rawWorkpsace.getOwner().getType()
         ));
+
+        workspaceService.createOrUpdateWorkspace(new CreateWorkspaceDto(
+                rawWorkpsace.getWorkspaceId(),
+                user,
+                rawWorkpsace.getAccessToken(),
+                rawWorkpsace.getWorkspaceName(),
+                rawWorkpsace.getWorkspaceIcon(),
+                new HashMap<String, Object>()
+        ));
+
     }
 
     public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {
