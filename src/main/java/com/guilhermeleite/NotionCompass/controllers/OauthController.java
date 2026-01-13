@@ -14,7 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth/notion")
 @RequiredArgsConstructor
-public class NotionOauthController {
+public class OauthController {
 
     private final NotionService notionService;
 

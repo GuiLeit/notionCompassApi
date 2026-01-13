@@ -1,5 +1,6 @@
 package com.guilhermeleite.NotionCompass.config;
 
+import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.PagesRequestException;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
 import com.guilhermeleite.NotionCompass.dtos.ErrorResponseDto;
 import org.slf4j.Logger;
@@ -17,6 +18,14 @@ public class ExceptionEntityHandler {
     @ExceptionHandler(WorkspaceRequestException.class)
     public ResponseEntity<ErrorResponseDto> handleWorkspaceRequestException(WorkspaceRequestException e) {
         log.error("Workspace request error: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponseDto(e.getMessage()));
+    }
+
+    @ExceptionHandler(PagesRequestException.class)
+    public ResponseEntity<ErrorResponseDto> handlePagesRequestException(PagesRequestException e) {
+        log.error("Pages request error: {}", e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponseDto(e.getMessage()));

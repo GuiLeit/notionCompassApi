@@ -2,6 +2,8 @@ package com.guilhermeleite.NotionCompass.services;
 
 import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.user.User;
+import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
+import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.PagesRequestException;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
 import com.guilhermeleite.NotionCompass.dtos.NotionWorkspaceResponseDto;
 import com.guilhermeleite.NotionCompass.dtos.user.CreateUserDto;
@@ -28,7 +30,7 @@ public class NotionService {
     private final WorkspaceService workspaceService;
 
     public static URI getCallbackUri() {
-        return URI.create("https://zealous-aurora-13.webhook.cool");
+        return URI.create("https://jolly-rain-32.webhook.cool");
 //        return ServletUriComponentsBuilder.fromCurrentContextPath()
 //                .path("/api/auth/notion/callback")
 //                .build()
@@ -50,15 +52,16 @@ public class NotionService {
                 rawWorkpsace.getOwner().getType()
         ));
 
-        Map<String, Object> pages = this.fetchWorkspacePages(rawWorkpsace.getAccessToken());
-        workspaceService.createOrUpdateWorkspace(new CreateWorkspaceDto(
+        Workspace workspace = workspaceService.createOrUpdateWorkspace(new CreateWorkspaceDto(
                 rawWorkpsace.getWorkspaceId(),
                 user,
                 rawWorkpsace.getAccessToken(),
                 rawWorkpsace.getWorkspaceName(),
                 rawWorkpsace.getWorkspaceIcon(),
-                pages
+                new HashMap<String, Object>()
         ));
+
+        this.fetchWorkspacePages(workspace.getAccessToken());
     }
 
     public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {
@@ -103,13 +106,7 @@ public class NotionService {
         headers.add("Notion-Version", "2022-06-28");
         headers.add("Authorization", workspaceAccessToken);
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("sort", Map.of(
-                "direction", "ascending",
-                "timestamp", "created_time"
-        ));
-
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(new HashMap<>(), headers);
 
         try {
             return restTemplate.postForObject(
@@ -118,13 +115,13 @@ public class NotionService {
                     Map.class
             );
         } catch (HttpClientErrorException e) {
-            throw new WorkspaceRequestException("Invalid access token or client credentials: " + e.getStatusCode(), e);
+            throw new PagesRequestException("Invalid access token or client credentials: " + e.getStatusCode(), e);
         } catch (HttpServerErrorException e) {
-            throw new WorkspaceRequestException("Notion API server error: " + e.getStatusCode(), e);
+            throw new PagesRequestException("Notion API server error: " + e.getStatusCode(), e);
         } catch (ResourceAccessException e) {
-            throw new WorkspaceRequestException("Failed to connect to Notion API", e);
+            throw new PagesRequestException("Failed to connect to Notion API", e);
         } catch (RestClientException e) {
-            throw new WorkspaceRequestException("Invalid access token: " + e.getLocalizedMessage(), e);
+            throw new PagesRequestException("Invalid access token: " + e.getLocalizedMessage(), e);
         }
     }
 }

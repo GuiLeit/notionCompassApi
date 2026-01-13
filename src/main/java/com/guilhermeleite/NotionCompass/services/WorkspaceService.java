@@ -14,6 +14,10 @@ public class WorkspaceService {
 
     private final WorkspaceRepository workspaceRepository;
 
+    public Iterable<Workspace> findAll() {
+        return workspaceRepository.findAll();
+    }
+
     public Optional<Workspace> findById(Long id) {
         return workspaceRepository.findById(id);
     }
