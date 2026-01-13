@@ -50,15 +50,15 @@ public class NotionService {
                 rawWorkpsace.getOwner().getType()
         ));
 
+        Map<String, Object> pages = this.fetchWorkspacePages(rawWorkpsace.getAccessToken());
         workspaceService.createOrUpdateWorkspace(new CreateWorkspaceDto(
                 rawWorkpsace.getWorkspaceId(),
                 user,
                 rawWorkpsace.getAccessToken(),
                 rawWorkpsace.getWorkspaceName(),
                 rawWorkpsace.getWorkspaceIcon(),
-                new HashMap<String, Object>()
+                pages
         ));
-
     }
 
     public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {
@@ -94,6 +94,37 @@ public class NotionService {
         } catch (RestClientException e) {
             throw new WorkspaceRequestException("Invalid authorization code: " + e.getLocalizedMessage(), e);
         }
+    }
 
+    public Map<String, Object> fetchWorkspacePages(String workspaceAccessToken) {
+        //Headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Notion-Version", "2022-06-28");
+        headers.add("Authorization", workspaceAccessToken);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("sort", Map.of(
+                "direction", "ascending",
+                "timestamp", "created_time"
+        ));
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        try {
+            return restTemplate.postForObject(
+                    this.notionProperties.getPagesUrl(),
+                    request,
+                    Map.class
+            );
+        } catch (HttpClientErrorException e) {
+            throw new WorkspaceRequestException("Invalid access token or client credentials: " + e.getStatusCode(), e);
+        } catch (HttpServerErrorException e) {
+            throw new WorkspaceRequestException("Notion API server error: " + e.getStatusCode(), e);
+        } catch (ResourceAccessException e) {
+            throw new WorkspaceRequestException("Failed to connect to Notion API", e);
+        } catch (RestClientException e) {
+            throw new WorkspaceRequestException("Invalid access token: " + e.getLocalizedMessage(), e);
+        }
     }
 }

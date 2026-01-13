@@ -1,7 +1,6 @@
 package com.guilhermeleite.NotionCompass.services;
 
-import com.guilhermeleite.NotionCompass.domains.user.User;
-import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.Workspace;
+import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import com.guilhermeleite.NotionCompass.dtos.workspace.CreateWorkspaceDto;
 import com.guilhermeleite.NotionCompass.repositories.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;

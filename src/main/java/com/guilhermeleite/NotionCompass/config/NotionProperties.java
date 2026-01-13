@@ -20,10 +20,12 @@ public class NotionProperties {
     private String clientSecret;
     private String authorizationUrl;
     private String tokenUrl;
+    private String pagesUrl;
 
     public NotionProperties() {
         this.authorizationUrl = "https://api.notion.com/v1/oauth/authorize";
         this.tokenUrl = "https://api.notion.com/v1/oauth/token";
+        this.pagesUrl = "https://api.notion.com/v1/search";
     }
 
 }

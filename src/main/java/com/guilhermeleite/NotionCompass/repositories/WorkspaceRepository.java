@@ -1,6 +1,6 @@
 package com.guilhermeleite.NotionCompass.repositories;
 
-import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.Workspace;
+import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

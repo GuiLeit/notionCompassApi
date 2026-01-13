@@ -1,4 +1,4 @@
-package com.guilhermeleite.NotionCompass.domains.workspace.exceptions;
+package com.guilhermeleite.NotionCompass.domains.workspace;
 
 import com.guilhermeleite.NotionCompass.domains.user.User;
 import jakarta.persistence.*;
