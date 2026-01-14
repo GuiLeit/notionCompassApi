@@ -66,10 +66,10 @@ public class WorkspaceService {
         return this.mapToDetailsDto(workspace);
     }
 
-    public Map<String, Object> getWorkspacePagesById(String id) {
+    public List<Object> getWorkspacePagesById(String id) {
         Workspace workspace = this.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
-        return pagesService.fetchPagesByWorkspaceToken(workspace.getAccessToken());
+        return pagesService.getPagesByWorkspaceToken(workspace);
     }
 }

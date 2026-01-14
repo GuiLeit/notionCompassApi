@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -32,8 +33,8 @@ public class NotionController {
     }
 
     @GetMapping("/workspaces/{workspaceId}/pages")
-    public ResponseEntity<Map<String, Object>> getWorkspacePages(@PathVariable String workspaceId) {
-        Map<String, Object> pages = this.workspaceService.getWorkspacePagesById(workspaceId);
+    public ResponseEntity<List<Object>> getWorkspacePages(@PathVariable String workspaceId) {
+        List<Object> pages = this.workspaceService.getWorkspacePagesById(workspaceId);
         return ResponseEntity.ok(pages);
     }
 }
