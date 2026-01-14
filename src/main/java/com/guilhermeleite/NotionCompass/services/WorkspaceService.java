@@ -2,11 +2,14 @@ package com.guilhermeleite.NotionCompass.services;
 
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import com.guilhermeleite.NotionCompass.dtos.workspace.CreateWorkspaceDto;
+import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceListResponseDto;
+import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceResponseDto;
 import com.guilhermeleite.NotionCompass.repositories.WorkspaceRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -14,16 +17,29 @@ public class WorkspaceService {
 
     private final WorkspaceRepository workspaceRepository;
 
-    public Iterable<Workspace> findAll() {
-        return workspaceRepository.findAll();
+    public WorkspaceListResponseDto findAll() {
+        List<Workspace> workspaces = workspaceRepository.findAll();
+
+        List<WorkspaceResponseDto> workspaceResponseDtoList = workspaces.stream()
+                .map(workspace -> new WorkspaceResponseDto(
+                        workspace.getNotionWorkspaceId(),
+                        workspace.getName(),
+                        workspace.getIcon()
+                ))
+                .toList();
+
+        return new WorkspaceListResponseDto(workspaceResponseDtoList);
     }
 
-    public Optional<Workspace> findById(Long id) {
-        return workspaceRepository.findById(id);
-    }
+    public WorkspaceResponseDto findByNotionId(String notionId) {
+        Workspace workspace = workspaceRepository.findByNotionWorkspaceId(notionId)
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
-    public Optional<Workspace> findByNotionId(String notionId) {
-        return workspaceRepository.findByNotionWorkspaceId(notionId);
+        return new WorkspaceResponseDto(
+                workspace.getNotionWorkspaceId(),
+                workspace.getName(),
+                workspace.getIcon()
+        );
     }
 
     public Workspace createWorkspace(CreateWorkspaceDto createWorkspaceDto) {
