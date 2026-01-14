@@ -1,6 +1,6 @@
 package com.guilhermeleite.NotionCompass.dtos.workspace;
 
-public record WorkspaceResponseDto(
+public record WorkspaceDetailsDto(
         String notionId,
         String name,
         String icon

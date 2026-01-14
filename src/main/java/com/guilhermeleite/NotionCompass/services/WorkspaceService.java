@@ -2,58 +2,37 @@ package com.guilhermeleite.NotionCompass.services;
 
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import com.guilhermeleite.NotionCompass.dtos.workspace.CreateWorkspaceDto;
-import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceListResponseDto;
-import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceResponseDto;
+import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsDto;
+import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsListDto;
 import com.guilhermeleite.NotionCompass.repositories.WorkspaceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class WorkspaceService {
 
     private final WorkspaceRepository workspaceRepository;
+    private final PagesService pagesService;
 
-    public WorkspaceListResponseDto findAll() {
-        List<Workspace> workspaces = workspaceRepository.findAll();
-
-        List<WorkspaceResponseDto> workspaceResponseDtoList = workspaces.stream()
-                .map(workspace -> new WorkspaceResponseDto(
-                        workspace.getNotionWorkspaceId(),
-                        workspace.getName(),
-                        workspace.getIcon()
-                ))
-                .toList();
-
-        return new WorkspaceListResponseDto(workspaceResponseDtoList);
-    }
-
-    public WorkspaceResponseDto findByNotionId(String notionId) {
-        Workspace workspace = workspaceRepository.findByNotionWorkspaceId(notionId)
-                .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
-
-        return new WorkspaceResponseDto(
+    private WorkspaceDetailsDto mapToDetailsDto(Workspace workspace) {
+        return new WorkspaceDetailsDto(
                 workspace.getNotionWorkspaceId(),
                 workspace.getName(),
                 workspace.getIcon()
         );
     }
 
-    public Workspace createWorkspace(CreateWorkspaceDto createWorkspaceDto) {
-        Workspace workspace = new Workspace();
-        workspace.setNotionWorkspaceId(createWorkspaceDto.notionId());
-        workspace.setUser(createWorkspaceDto.user());
-        workspace.setAccessToken(createWorkspaceDto.accessToken());
-        workspace.setName(createWorkspaceDto.name());
-        workspace.setIcon(createWorkspaceDto.icon());
-        workspace.setPages(createWorkspaceDto.pages());
-        return workspaceRepository.save(workspace);
+    public Optional<Workspace> findByNotionId(String notionId) {
+        return this.workspaceRepository.findByNotionWorkspaceId(notionId);
     }
 
-    public Workspace createOrUpdateWorkspace(CreateWorkspaceDto workspaceDto){
+    public Workspace createOrUpdate(CreateWorkspaceDto workspaceDto){
         Workspace workspace = this.findByNotionId(workspaceDto.notionId())
                 .orElse(new Workspace());
 
@@ -66,4 +45,28 @@ public class WorkspaceService {
         return workspaceRepository.save(workspace);
     }
 
+    // Dto methods
+    public WorkspaceDetailsListDto getWorkspaces() {
+        List<Workspace> workspaces = workspaceRepository.findAll();
+
+        List<WorkspaceDetailsDto> workspaceDetailsDtoList = workspaces.stream()
+                .map(this::mapToDetailsDto)
+                .toList();
+
+        return new WorkspaceDetailsListDto(workspaceDetailsDtoList);
+    }
+
+    public WorkspaceDetailsDto getWorkspaceByNotionId(String notionId) {
+        Workspace workspace = this.findByNotionId(notionId)
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
+
+        return this.mapToDetailsDto(workspace);
+    }
+
+    public Map<String, Object> getWorkspacePagesByNotionId(String notionId) {
+        Workspace workspace = this.findByNotionId(notionId)
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
+
+        return pagesService.fetchPagesByWorkspaceToken(workspace.getAccessToken());
+    }
 }
