@@ -11,6 +11,5 @@ public record CreateWorkspaceDto(
         User user,
         String accessToken,
         String name,
-        String icon,
-        Map<String, Object> pages
+        String icon
 ) {}

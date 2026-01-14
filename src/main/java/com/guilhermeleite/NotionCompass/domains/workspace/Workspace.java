@@ -21,8 +21,8 @@ import java.util.Map;
 public class Workspace {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @Column(nullable = false, name = "notion_workspace_id")
     private String notionWorkspaceId;
@@ -39,10 +39,6 @@ public class Workspace {
 
     @Column(name = "icon")
     private String icon;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "pages")
-    private Map<String, Object> pages;
 
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;

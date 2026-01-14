@@ -22,10 +22,14 @@ public class WorkspaceService {
 
     private WorkspaceDetailsDto mapToDetailsDto(Workspace workspace) {
         return new WorkspaceDetailsDto(
-                workspace.getNotionWorkspaceId(),
+                workspace.getId(),
                 workspace.getName(),
                 workspace.getIcon()
         );
+    }
+
+    public Optional<Workspace> findById(String id) {
+        return this.workspaceRepository.findById(id);
     }
 
     public Optional<Workspace> findByNotionId(String notionId) {
@@ -41,7 +45,6 @@ public class WorkspaceService {
         workspace.setAccessToken(workspaceDto.accessToken());
         workspace.setName(workspaceDto.name());
         workspace.setIcon(workspaceDto.icon());
-        workspace.setPages(workspaceDto.pages());
         return workspaceRepository.save(workspace);
     }
 
@@ -56,15 +59,15 @@ public class WorkspaceService {
         return new WorkspaceDetailsListDto(workspaceDetailsDtoList);
     }
 
-    public WorkspaceDetailsDto getWorkspaceByNotionId(String notionId) {
-        Workspace workspace = this.findByNotionId(notionId)
+    public WorkspaceDetailsDto getWorkspaceById(String id) {
+        Workspace workspace = this.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
         return this.mapToDetailsDto(workspace);
     }
 
-    public Map<String, Object> getWorkspacePagesByNotionId(String notionId) {
-        Workspace workspace = this.findByNotionId(notionId)
+    public Map<String, Object> getWorkspacePagesById(String id) {
+        Workspace workspace = this.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
         return pagesService.fetchPagesByWorkspaceToken(workspace.getAccessToken());

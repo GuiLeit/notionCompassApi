@@ -57,8 +57,7 @@ public class NotionService {
                 user,
                 rawWorkpsace.getAccessToken(),
                 rawWorkpsace.getWorkspaceName(),
-                rawWorkpsace.getWorkspaceIcon(),
-                new HashMap<String, Object>()
+                rawWorkpsace.getWorkspaceIcon()
         ));
     }
 

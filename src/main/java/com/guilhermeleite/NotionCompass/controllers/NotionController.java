@@ -25,15 +25,15 @@ public class NotionController {
         return ResponseEntity.ok(workspaces);
     }
 
-    @GetMapping("/workspaces/{workspaceNotionId}")
-    public ResponseEntity<WorkspaceDetailsDto> getWorkspace(@PathVariable String workspaceNotionId) {
-        WorkspaceDetailsDto workspace = this.workspaceService.getWorkspaceByNotionId(workspaceNotionId);
+    @GetMapping("/workspaces/{workspaceId}")
+    public ResponseEntity<WorkspaceDetailsDto> getWorkspace(@PathVariable String workspaceId) {
+        WorkspaceDetailsDto workspace = this.workspaceService.getWorkspaceById(workspaceId);
         return ResponseEntity.ok(workspace);
     }
 
-    @GetMapping("/workspaces/{workspaceNotionId}/pages")
-    public ResponseEntity<Map<String, Object>> getWorkspacePages(@PathVariable String workspaceNotionId) {
-        Map<String, Object> pages = this.workspaceService.getWorkspacePagesByNotionId(workspaceNotionId);
+    @GetMapping("/workspaces/{workspaceId}/pages")
+    public ResponseEntity<Map<String, Object>> getWorkspacePages(@PathVariable String workspaceId) {
+        Map<String, Object> pages = this.workspaceService.getWorkspacePagesById(workspaceId);
         return ResponseEntity.ok(pages);
     }
 }
