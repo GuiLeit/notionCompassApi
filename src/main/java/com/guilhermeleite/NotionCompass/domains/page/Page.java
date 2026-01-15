@@ -27,7 +27,19 @@ public class Page {
     @JoinColumn(name = "workspace_id", nullable = false)
     private Workspace workspace;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "object", columnDefinition = "json", nullable = false)
-    private Map<String, Object> object;
+    @Column(name = "notion_page_id", nullable = false, unique = true)
+    private String notionPageId;
+
+    @Column(name = "notion_parent_page_id")
+    private String notionParentPageId;
+
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Column(name = "icon")
+    private String icon;
+
+    @Column(name = "url", nullable = false)
+    private String url;
+
 }

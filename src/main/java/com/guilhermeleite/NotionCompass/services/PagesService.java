@@ -1,22 +1,25 @@
 package com.guilhermeleite.NotionCompass.services;
 
+import com.guilhermeleite.NotionCompass.config.ExceptionEntityHandler;
 import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.page.Page;
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.PagesRequestException;
 import com.guilhermeleite.NotionCompass.dtos.page.CreatePageDto;
+import com.guilhermeleite.NotionCompass.dtos.page.PageDetailsDto;
+import com.guilhermeleite.NotionCompass.dtos.page.RawPageDto;
 import com.guilhermeleite.NotionCompass.repositories.PageRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
+import tools.jackson.databind.JsonNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -25,32 +28,80 @@ public class PagesService {
     private final PageRepository pageRepository;
     private final NotionProperties notionProperties;
     private final RestTemplate restTemplate;
+    private static final Logger log = LoggerFactory.getLogger(ExceptionEntityHandler.class);
+
+    private Optional<RawPageDto> mapPageObjectToDto(JsonNode pageObj) {
+        try {
+            return Optional.of(new RawPageDto(
+                    pageObj.path("id").asString(),
+                    pageObj.at("/parent/page_id").asString(null),
+                    this.extractTitle(pageObj),
+                    this.extractIcon(pageObj),
+                    pageObj.path("url").asString()
+            ));
+        } catch (Exception e){
+            log.error("Error mapping page object to DTO: {}\n From page object: {}", e.getMessage(), pageObj);
+            return Optional.empty();
+        }
+    }
+
+    private String extractTitle(JsonNode pageObj) {
+        var title = pageObj.at("/properties/title/title/0/text/content").asString(null);
+        if(title == null){
+            title = pageObj.at("/properties/title/title/0/plain_text").asString(null);
+        }
+        return title;
+    }
+    private String extractIcon(JsonNode pageObj) {
+        var icon = pageObj.at("/icon/emoji").asString(null);
+        if(icon == null){
+            icon = pageObj.at("/icon/external/url").asString(null);
+        }
+        return icon;
+    }
 
     public Page create(CreatePageDto pageDto) {
         Page page = new Page();
         page.setWorkspace(pageDto.workspace());
-        page.setObject(pageDto.object());
+        page.setNotionPageId(pageDto.notionPageId());
+        page.setNotionParentPageId(pageDto.parentId());
+        page.setTitle(pageDto.title());
+        page.setIcon(pageDto.icon());
+        page.setUrl(pageDto.url());
         return this.pageRepository.save(page);
     }
 
     @SuppressWarnings("unchecked")
-    public List<Object> getPagesByWorkspaceToken(Workspace workspace) {
-        Map<String, Object> response = this.fetchPages(workspace.getAccessToken());
-        List<Object> pages = new ArrayList<>();
+    public List<PageDetailsDto> getPagesByWorkspace(Workspace workspace) {
+        JsonNode response = this.fetchPages(workspace.getAccessToken());
+        List<PageDetailsDto> pages = new ArrayList<>();
 
-        for (Object pageObj : (Iterable<?>) response.get("results")) {
-            Map<String, Object> pageMap = (Map<String, Object>) pageObj;
-            this.create(new CreatePageDto(
-                    workspace,
-                    pageMap
-            ));
-            pages.add(pageMap);
+        for (JsonNode pageObj : (Iterable<JsonNode>) response.get("results")) {
+            this.mapPageObjectToDto(pageObj).ifPresent(pageDto -> {
+                this.create(new CreatePageDto(
+                        workspace,
+                        pageDto.notionPageId(),
+                        pageDto.parentId(),
+                        pageDto.title(),
+                        pageDto.icon(),
+                        pageDto.url()
+                ));
+                pages.add(new PageDetailsDto(
+                        workspace.getNotionWorkspaceId(),
+                        pageDto.notionPageId(),
+                        pageDto.parentId(),
+                        pageDto.title(),
+                        pageDto.icon(),
+                        pageDto.url()
+                ));
+            });
+
         }
 
         return pages;
     }
 
-    private Map<String, Object> fetchPages(String workspaceAccessToken) {
+    private JsonNode fetchPages(String workspaceAccessToken) {
         //Headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -63,7 +114,7 @@ public class PagesService {
             return restTemplate.postForObject(
                     this.notionProperties.getPagesUrl(),
                     request,
-                    Map.class
+                    JsonNode.class
             );
         } catch (HttpClientErrorException e) {
             throw new PagesRequestException("Invalid access token or client credentials: " + e.getStatusCode(), e);

@@ -1,5 +1,6 @@
 package com.guilhermeleite.NotionCompass.controllers;
 
+import com.guilhermeleite.NotionCompass.dtos.page.PageDetailsDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsListDto;
 import com.guilhermeleite.NotionCompass.services.WorkspaceService;
@@ -33,8 +34,8 @@ public class NotionController {
     }
 
     @GetMapping("/workspaces/{workspaceId}/pages")
-    public ResponseEntity<List<Object>> getWorkspacePages(@PathVariable String workspaceId) {
-        List<Object> pages = this.workspaceService.getWorkspacePagesById(workspaceId);
+    public ResponseEntity<List<PageDetailsDto>> getWorkspacePages(@PathVariable String workspaceId) {
+        List<PageDetailsDto> pages = this.workspaceService.getWorkspacePagesById(workspaceId);
         return ResponseEntity.ok(pages);
     }
 }

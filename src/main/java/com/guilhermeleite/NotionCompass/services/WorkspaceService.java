@@ -1,6 +1,7 @@
 package com.guilhermeleite.NotionCompass.services;
 
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
+import com.guilhermeleite.NotionCompass.dtos.page.PageDetailsDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.CreateWorkspaceDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsListDto;
@@ -66,10 +67,10 @@ public class WorkspaceService {
         return this.mapToDetailsDto(workspace);
     }
 
-    public List<Object> getWorkspacePagesById(String id) {
+    public List<PageDetailsDto> getWorkspacePagesById(String id) {
         Workspace workspace = this.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
-        return pagesService.getPagesByWorkspaceToken(workspace);
+        return pagesService.getPagesByWorkspace(workspace);
     }
 }
