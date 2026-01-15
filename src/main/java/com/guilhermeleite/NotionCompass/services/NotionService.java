@@ -45,7 +45,7 @@ public class NotionService {
         return URI.create(uriString);
     }
 
-    public void handleOauthCallback(String code) {
+    public User handleOauthCallback(String code) {
         NotionWorkspaceResponseDto rawWorkpsace = this.exchangeCodeForWorkspaceData(code);
         User user = userService.findOrCreateUser(new CreateUserDto(
                 rawWorkpsace.getOwner().getUser().getId(),
@@ -59,6 +59,8 @@ public class NotionService {
                 rawWorkpsace.getWorkspaceName(),
                 rawWorkpsace.getWorkspaceIcon()
         ));
+
+        return user;
     }
 
     public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {
