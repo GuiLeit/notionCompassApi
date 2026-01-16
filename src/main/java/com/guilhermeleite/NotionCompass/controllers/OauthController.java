@@ -7,6 +7,7 @@ import com.guilhermeleite.NotionCompass.security.TokenService;
 import com.guilhermeleite.NotionCompass.services.NotionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,8 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/notion/auth")
 @RequiredArgsConstructor
@@ -35,15 +36,19 @@ public class OauthController {
 
     @GetMapping("/callback")
     public ResponseEntity<?> callback(@Valid @ModelAttribute NotionCallbackRequestDto request) {
-        User user = notionService.handleOauthCallback(request.getCode());
+        try {
+            User user = notionService.handleOauthCallback(request.getCode());
 
-        // Authenticate the user in the application
-        var usernamePassword = new UsernamePasswordAuthenticationToken(user.getNotionUserId(), "");
-        var auth = this.authenticationManager.authenticate(usernamePassword);
+            var usernamePassword = new UsernamePasswordAuthenticationToken(user.getNotionUserId(), "password");
+            var auth = this.authenticationManager.authenticate(usernamePassword);
 
-        AuthTokenDetailsDto tokenDto = tokenService.generateToken((User) auth.getPrincipal());
-        return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
-                .location(notionService.buildSuccessAuthorizationUri(tokenDto))
-                .build();
+            AuthTokenDetailsDto tokenDto = tokenService.generateToken((User) auth.getPrincipal());
+            return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
+                    .location(notionService.buildSuccessAuthorizationUri(tokenDto))
+                    .build();
+        } catch (Exception e) {
+            log.error("Error during OAuth callback processing: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            throw e;
+        }
     }
 }

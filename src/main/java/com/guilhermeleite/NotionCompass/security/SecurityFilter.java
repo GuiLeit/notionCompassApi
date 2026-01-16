@@ -1,26 +1,29 @@
 package com.guilhermeleite.NotionCompass.security;
 
+import com.guilhermeleite.NotionCompass.domains.user.User;
 import com.guilhermeleite.NotionCompass.repositories.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
 
+@Slf4j
 @Component
-@RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
-    private final TokenService tokenService;
-    private final UserRepository userRepository;
+    @Autowired
+    private TokenService tokenService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -28,13 +31,19 @@ public class SecurityFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        var token = this.recoverToken(request);
-        if(token != null) {
-            String subject = this.tokenService.validateToken(token);
-            UserDetails user = this.userRepository.findUserDetailsByNotionUserId(subject);
+        try {
+            var token = this.recoverToken(request);
+            if(token != null) {
+                String subject = this.tokenService.validateToken(token);
+                User user = this.userRepository.findByNotionUserId(subject).orElse(null);
 
-            var authentication = new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                if(user != null){
+                    var authentication = new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error processing security filter", e);
         }
         filterChain.doFilter(request, response);
     }
