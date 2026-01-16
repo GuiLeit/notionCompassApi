@@ -27,7 +27,7 @@ public class SecurityConfigurations {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.GET, "/notion/auth/login", "/notion/auth/callback").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/notion/auth/login", "/notion/auth/callback").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(SecurityFilter, UsernamePasswordAuthenticationFilter.class)

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/notion")
+@RequestMapping("/notion")
 @RequiredArgsConstructor
 public class NotionController {
 
