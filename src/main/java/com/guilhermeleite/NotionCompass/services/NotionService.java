@@ -5,10 +5,12 @@ import com.guilhermeleite.NotionCompass.domains.user.User;
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.PagesRequestException;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
+import com.guilhermeleite.NotionCompass.dtos.AuthTokenDetailsDto;
 import com.guilhermeleite.NotionCompass.dtos.NotionWorkspaceResponseDto;
 import com.guilhermeleite.NotionCompass.dtos.user.CreateUserDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.CreateWorkspaceDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -29,6 +31,9 @@ public class NotionService {
     private final UserService userService;
     private final WorkspaceService workspaceService;
 
+    @Value("${app.extension.id}")
+    private String extentionId;
+
     public static URI getCallbackUri() {
         return URI.create("https://jolly-rain-32.webhook.cool");
 //        return ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -42,6 +47,15 @@ public class NotionService {
                 notionProperties.getAuthorizationUrl(),
                 notionProperties.getClientId(),
                 NotionService.getCallbackUri().toString());
+        return URI.create(uriString);
+    }
+
+    public URI buildSuccessAuthorizationUri(AuthTokenDetailsDto tokenDto) {
+        String uriString = String.format("chrome-extension://%s/success.html?access_token=%s&token_type=Bearer&expires_at=%d",
+                extentionId,
+                tokenDto.token(),
+                tokenDto.expiresAt().getEpochSecond()
+        );
         return URI.create(uriString);
     }
 
