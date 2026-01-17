@@ -30,6 +30,7 @@ public class NotionService {
     private final RestTemplate restTemplate;
     private final UserService userService;
     private final WorkspaceService workspaceService;
+    private final PagesService pagesService;
 
     @Value("${app.extension.id}")
     private String extentionId;
@@ -60,7 +61,7 @@ public class NotionService {
     }
 
     public User handleOauthCallback(String code) {
-        NotionWorkspaceResponseDto rawWorkpsace = this.exchangeCodeForWorkspaceData(code);
+        NotionWorkspaceResponseDto rawWorkpsace = this.workspaceService.exchangeCodeForWorkspaceData(code);
         User user = userService.findOrCreateUser(new CreateUserDto(
                 rawWorkpsace.getOwner().getUser().getId(),
                 rawWorkpsace.getOwner().getType()
@@ -74,41 +75,11 @@ public class NotionService {
                 rawWorkpsace.getWorkspaceIcon()
         ));
 
+        // TODO Create a job to fetch pages later
+        this.pagesService.fetchPagesByWorkspace(workspace);
+
         return user;
     }
 
-    public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {
-        String credentials = String.format("%s:%s", notionProperties.getClientId(), notionProperties.getClientSecret());
-        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
 
-        //Headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Notion-Version", "2022-06-28");
-        headers.add("Authorization", "Basic " + encodedCredentials);
-
-        //Body
-        Map<String, String> body = new HashMap<>();
-        body.put("grant_type", "authorization_code");
-        body.put("code", code);
-        body.put("redirect_uri", NotionService.getCallbackUri().toString());
-
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
-
-        try {
-            return restTemplate.postForObject(
-                    notionProperties.getTokenUrl(),
-                    request,
-                    NotionWorkspaceResponseDto.class
-            );
-        } catch (HttpClientErrorException e) {
-            throw new WorkspaceRequestException("Invalid authorization code or client credentials: " + e.getStatusCode(), e);
-        } catch (HttpServerErrorException e) {
-            throw new WorkspaceRequestException("Notion API server error: " + e.getStatusCode(), e);
-        } catch (ResourceAccessException e) {
-            throw new WorkspaceRequestException("Failed to connect to Notion API", e);
-        } catch (RestClientException e) {
-            throw new WorkspaceRequestException("Invalid authorization code: " + e.getLocalizedMessage(), e);
-        }
-    }
 }

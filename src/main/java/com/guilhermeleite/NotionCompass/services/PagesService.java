@@ -71,8 +71,20 @@ public class PagesService {
         return this.pageRepository.save(page);
     }
 
-    @SuppressWarnings("unchecked")
-    public List<PageDetailsDto> getPagesByWorkspace(Workspace workspace) {
+    public List<PageDetailsDto> getPagesByWorkspaceId(String workspaceId) {
+        return this.pageRepository.findByWorkspaceId(workspaceId).stream()
+                .map(page -> new PageDetailsDto(
+                        page.getWorkspace().getNotionWorkspaceId(),
+                        page.getNotionPageId(),
+                        page.getNotionParentPageId(),
+                        page.getTitle(),
+                        page.getIcon(),
+                        page.getUrl()
+                ))
+                .toList();
+    }
+
+    public List<PageDetailsDto> fetchPagesByWorkspace(Workspace workspace) {
         JsonNode response = this.fetchPages(workspace.getAccessToken());
         List<PageDetailsDto> pages = new ArrayList<>();
 
