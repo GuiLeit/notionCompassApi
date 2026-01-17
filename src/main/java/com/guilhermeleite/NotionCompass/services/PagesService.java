@@ -60,8 +60,25 @@ public class PagesService {
         return icon;
     }
 
+    public Optional<Page> findByNotionId(String notionId) {
+        return this.pageRepository.findByNotionPageId(notionId);
+    }
+
     public Page create(CreatePageDto pageDto) {
         Page page = new Page();
+        page.setWorkspace(pageDto.workspace());
+        page.setNotionPageId(pageDto.notionPageId());
+        page.setNotionParentPageId(pageDto.parentId());
+        page.setTitle(pageDto.title());
+        page.setIcon(pageDto.icon());
+        page.setUrl(pageDto.url());
+        return this.pageRepository.save(page);
+    }
+
+    public Page createOrUpdate(CreatePageDto pageDto) {
+        Page page = this.findByNotionId(pageDto.notionPageId())
+                .orElse(new Page());
+
         page.setWorkspace(pageDto.workspace());
         page.setNotionPageId(pageDto.notionPageId());
         page.setNotionParentPageId(pageDto.parentId());
@@ -90,7 +107,7 @@ public class PagesService {
 
         for (JsonNode pageObj : (Iterable<JsonNode>) response.get("results")) {
             this.mapPageObjectToDto(pageObj).ifPresent(pageDto -> {
-                this.create(new CreatePageDto(
+                this.createOrUpdate(new CreatePageDto(
                         workspace,
                         pageDto.notionPageId(),
                         pageDto.parentId(),
