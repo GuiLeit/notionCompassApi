@@ -25,6 +25,7 @@ public class NotionProperties {
     private String clientSecret;
     private String authorizationUrl;
     private String redirectUri;
+    private String webhookSecret;
     private String tokenUrl;
     private String pagesUrl;
 

@@ -28,6 +28,7 @@ public class SecurityConfigurations {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET, "/", "/notion/auth/login", "/notion/auth/callback").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/webhook").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(SecurityFilter, UsernamePasswordAuthenticationFilter.class)
