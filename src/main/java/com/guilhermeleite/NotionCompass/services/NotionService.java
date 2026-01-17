@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Base64;
@@ -26,39 +27,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotionService {
 
-    private final NotionProperties notionProperties;
-    private final RestTemplate restTemplate;
     private final UserService userService;
     private final WorkspaceService workspaceService;
     private final PagesService pagesService;
-
-    @Value("${app.extension.id}")
-    private String extentionId;
-
-    public static URI getCallbackUri() {
-        return URI.create("https://jolly-rain-32.webhook.cool");
-//        return ServletUriComponentsBuilder.fromCurrentContextPath()
-//                .path("/api/auth/notion/callback")
-//                .build()
-//                .toUri();
-    }
-
-    public URI buildAuthorizationUri() {
-        String uriString = String.format("%s?client_id=%s&response_type=code&owner=user&redirect_uri=%s",
-                notionProperties.getAuthorizationUrl(),
-                notionProperties.getClientId(),
-                NotionService.getCallbackUri().toString());
-        return URI.create(uriString);
-    }
-
-    public URI buildSuccessAuthorizationUri(AuthTokenDetailsDto tokenDto) {
-        String uriString = String.format("chrome-extension://%s/success.html?access_token=%s&token_type=Bearer&expires_at=%d",
-                extentionId,
-                tokenDto.token(),
-                tokenDto.expiresAt().getEpochSecond()
-        );
-        return URI.create(uriString);
-    }
 
     public User handleOauthCallback(String code) {
         NotionWorkspaceResponseDto rawWorkpsace = this.workspaceService.exchangeCodeForWorkspaceData(code);

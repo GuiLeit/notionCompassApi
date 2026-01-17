@@ -111,7 +111,7 @@ public class WorkspaceService {
         Map<String, String> body = new HashMap<>();
         body.put("grant_type", "authorization_code");
         body.put("code", code);
-        body.put("redirect_uri", NotionService.getCallbackUri().toString());
+        body.put("redirect_uri", this.notionProperties.getCallbackUri().toString());
 
         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 

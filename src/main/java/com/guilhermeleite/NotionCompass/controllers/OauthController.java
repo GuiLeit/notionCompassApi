@@ -1,5 +1,6 @@
 package com.guilhermeleite.NotionCompass.controllers;
 
+import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.user.User;
 import com.guilhermeleite.NotionCompass.dtos.NotionCallbackRequestDto;
 import com.guilhermeleite.NotionCompass.dtos.AuthTokenDetailsDto;
@@ -22,13 +23,14 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class OauthController {
 
+    private final NotionProperties  notionProperties;
     private final NotionService notionService;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
 
     @GetMapping("/login")
     public ResponseEntity<Void> login() {
-        URI authorizationUri = notionService.buildAuthorizationUri();
+        URI authorizationUri = this.notionProperties.buildAuthorizationUri();
         return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
                 .location(authorizationUri)
                 .build();
@@ -44,7 +46,7 @@ public class OauthController {
 
             AuthTokenDetailsDto tokenDto = tokenService.generateToken((User) auth.getPrincipal());
             return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
-                    .location(notionService.buildSuccessAuthorizationUri(tokenDto))
+                    .location(this.notionProperties.buildSuccessAuthorizationUri(tokenDto))
                     .build();
         } catch (Exception e) {
             log.error("Error during OAuth callback processing: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
