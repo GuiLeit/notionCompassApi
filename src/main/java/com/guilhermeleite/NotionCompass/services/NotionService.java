@@ -62,7 +62,7 @@ public class NotionService {
         ));
 
         // TODO Create a job to fetch pages later
-        this.pagesService.fetchPagesByWorkspace(workspace);
+        this.pagesService.getPagesFromNotionApi(workspace);
 
         return user;
     }
@@ -79,8 +79,9 @@ public class NotionService {
     }
 
     private void handlePageCreated(NotionWebhookPayloadDto payload) {
-        log.info("Processing page.created event for page: {}", payload.getEntity().getId());
-        // TODO: Implement page creation logic
+        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
+                .orElseThrow(() -> new IllegalArgumentException("Workspace not found for ID: " + payload.getWorkspaceId()));
+        this.pagesService.getPageFromNotionApi(workspace, payload.getEntity().getId());
     }
 
     private void handlePageUpdated(NotionWebhookPayloadDto payload) {

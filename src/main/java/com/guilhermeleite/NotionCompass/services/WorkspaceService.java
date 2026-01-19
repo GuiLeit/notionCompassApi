@@ -94,7 +94,7 @@ public class WorkspaceService {
         Workspace workspace = this.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
-        return this.pagesService.fetchPagesByWorkspace(workspace);
+        return this.pagesService.getPagesFromNotionApi(workspace);
     }
 
     public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {
