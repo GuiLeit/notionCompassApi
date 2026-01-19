@@ -3,7 +3,7 @@ package com.guilhermeleite.NotionCompass.services;
 import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
-import com.guilhermeleite.NotionCompass.dtos.NotionWorkspaceResponseDto;
+import com.guilhermeleite.NotionCompass.dtos.notion.NotionWorkspaceResponseDto;
 import com.guilhermeleite.NotionCompass.dtos.page.PageDetailsDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.*;
 import com.guilhermeleite.NotionCompass.repositories.WorkspaceRepository;

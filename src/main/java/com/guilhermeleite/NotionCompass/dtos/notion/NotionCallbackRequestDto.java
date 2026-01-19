@@ -1,4 +1,4 @@
-package com.guilhermeleite.NotionCompass.dtos;
+package com.guilhermeleite.NotionCompass.dtos.notion;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

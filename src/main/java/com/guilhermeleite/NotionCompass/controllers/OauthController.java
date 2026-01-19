@@ -2,7 +2,7 @@ package com.guilhermeleite.NotionCompass.controllers;
 
 import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.user.User;
-import com.guilhermeleite.NotionCompass.dtos.NotionCallbackRequestDto;
+import com.guilhermeleite.NotionCompass.dtos.notion.NotionCallbackRequestDto;
 import com.guilhermeleite.NotionCompass.dtos.AuthTokenDetailsDto;
 import com.guilhermeleite.NotionCompass.security.TokenService;
 import com.guilhermeleite.NotionCompass.services.NotionService;
@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -38,19 +39,14 @@ public class OauthController {
 
     @GetMapping("/callback")
     public ResponseEntity<?> callback(@Valid @ModelAttribute NotionCallbackRequestDto request) {
-        try {
-            User user = notionService.handleOauthCallback(request.getCode());
+        User user = notionService.handleOauthCallback(request.getCode());
 
-            var usernamePassword = new UsernamePasswordAuthenticationToken(user.getNotionUserId(), "password");
-            var auth = this.authenticationManager.authenticate(usernamePassword);
+        UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(user.getNotionUserId(), "password");
+        Authentication auth = this.authenticationManager.authenticate(usernamePassword);
 
-            AuthTokenDetailsDto tokenDto = tokenService.generateToken((User) auth.getPrincipal());
-            return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
-                    .location(this.notionProperties.buildSuccessAuthorizationUri(tokenDto))
-                    .build();
-        } catch (Exception e) {
-            log.error("Error during OAuth callback processing: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
-            throw e;
-        }
+        AuthTokenDetailsDto tokenDto = tokenService.generateToken((User) auth.getPrincipal());
+        return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
+                .location(this.notionProperties.buildSuccessAuthorizationUri(tokenDto))
+                .build();
     }
 }

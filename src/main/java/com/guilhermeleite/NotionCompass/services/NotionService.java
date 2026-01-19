@@ -4,20 +4,24 @@ import com.guilhermeleite.NotionCompass.config.ExceptionEntityHandler;
 import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.user.User;
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
-import com.guilhermeleite.NotionCompass.dtos.NotionWorkspaceResponseDto;
+import com.guilhermeleite.NotionCompass.dtos.notion.NotionWebhookPayloadDto;
+import com.guilhermeleite.NotionCompass.dtos.notion.NotionWorkspaceResponseDto;
 import com.guilhermeleite.NotionCompass.dtos.user.CreateUserDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.CreateWorkspaceDto;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.*;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,18 @@ public class NotionService {
     private final NotionProperties notionProperties;
 
     private static final Logger log = LoggerFactory.getLogger(ExceptionEntityHandler.class);
+    private Map<String, Consumer<NotionWebhookPayloadDto>> webhookEventHandlers;
+
+    @PostConstruct
+    public void init() {
+        this.webhookEventHandlers = new HashMap<>();
+        webhookEventHandlers.put("page.created", this::handlePageCreated);
+        webhookEventHandlers.put("page.updated", this::handlePageUpdated);
+        webhookEventHandlers.put("page.deleted", this::handlePageDeleted);
+        webhookEventHandlers.put("database.created", this::handleDatabaseCreated);
+        webhookEventHandlers.put("database.updated", this::handleDatabaseUpdated);
+        webhookEventHandlers.put("database.deleted", this::handleDatabaseDeleted);
+    }
 
     public User handleOauthCallback(String code) {
         NotionWorkspaceResponseDto rawWorkpsace = this.workspaceService.exchangeCodeForWorkspaceData(code);
@@ -49,6 +65,47 @@ public class NotionService {
         this.pagesService.fetchPagesByWorkspace(workspace);
 
         return user;
+    }
+
+    public void handleWebhookEvent(NotionWebhookPayloadDto payload) {
+        String eventType = payload.getType();
+        Consumer<NotionWebhookPayloadDto> handler = webhookEventHandlers.get(eventType);
+
+        if (handler == null) {
+            log.warn("Unhandled webhook event type: {}", eventType);
+            throw new IllegalArgumentException("Unhandled webhook event type: " + eventType);
+        }
+        handler.accept(payload);
+    }
+
+    private void handlePageCreated(NotionWebhookPayloadDto payload) {
+        log.info("Processing page.created event for page: {}", payload.getEntity().getId());
+        // TODO: Implement page creation logic
+    }
+
+    private void handlePageUpdated(NotionWebhookPayloadDto payload) {
+        log.info("Processing page.updated event for page: {}", payload.getEntity().getId());
+        // TODO: Implement page update logic
+    }
+
+    private void handlePageDeleted(NotionWebhookPayloadDto payload) {
+        log.info("Processing page.deleted event for page: {}", payload.getEntity().getId());
+        // TODO: Implement page deletion logic
+    }
+
+    private void handleDatabaseCreated(NotionWebhookPayloadDto payload) {
+        log.info("Processing database.created event for database: {}", payload.getEntity().getId());
+        // TODO: Implement database creation logic
+    }
+
+    private void handleDatabaseUpdated(NotionWebhookPayloadDto payload) {
+        log.info("Processing database.updated event for database: {}", payload.getEntity().getId());
+        // TODO: Implement database update logic
+    }
+
+    private void handleDatabaseDeleted(NotionWebhookPayloadDto payload) {
+        log.info("Processing database.deleted event for database: {}", payload.getEntity().getId());
+        // TODO: Implement database deletion logic
     }
 
     public boolean isWebhookSignatureValid(String webhookSignature, String requestBody) {

@@ -1,4 +1,4 @@
-package com.guilhermeleite.NotionCompass.dtos;
+package com.guilhermeleite.NotionCompass.dtos.notion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
