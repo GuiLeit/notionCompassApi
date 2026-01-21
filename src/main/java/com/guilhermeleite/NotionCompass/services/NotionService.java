@@ -2,6 +2,7 @@ package com.guilhermeleite.NotionCompass.services;
 
 import com.guilhermeleite.NotionCompass.config.ExceptionEntityHandler;
 import com.guilhermeleite.NotionCompass.config.NotionProperties;
+import com.guilhermeleite.NotionCompass.config.exceptions.EntityNotFoundException;
 import com.guilhermeleite.NotionCompass.domains.user.User;
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import com.guilhermeleite.NotionCompass.dtos.notion.NotionWebhookPayloadDto;
@@ -69,7 +70,7 @@ public class NotionService {
 
     public void handleWebhookEvent(NotionWebhookPayloadDto payload) {
         String eventType = payload.getType();
-        Consumer<NotionWebhookPayloadDto> handler = webhookEventHandlers.get(eventType);
+        Consumer<NotionWebhookPayloadDto> handler = this.webhookEventHandlers.get(eventType);
 
         if (handler == null) {
             log.warn("Unhandled webhook event type: {}", eventType);
@@ -80,7 +81,7 @@ public class NotionService {
 
     private void handlePageCreated(NotionWebhookPayloadDto payload) {
         Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
-                .orElseThrow(() -> new IllegalArgumentException("Workspace not found for ID: " + payload.getWorkspaceId()));
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found for ID: " + payload.getWorkspaceId(), null));
         this.pagesService.getPageFromNotionApi(workspace, payload.getEntity().getId());
     }
 

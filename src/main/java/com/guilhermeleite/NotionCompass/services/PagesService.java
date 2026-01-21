@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
@@ -185,11 +186,12 @@ public class PagesService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(new HashMap<>(), headers);
 
         try {
-            return restTemplate.postForObject(
+            return restTemplate.exchange(
                     this.notionProperties.getBaseNotionRoute() + "/pages/" + pageId,
+                    HttpMethod.GET,
                     request,
                     JsonNode.class
-            );
+            ).getBody();
         } catch (HttpClientErrorException e) {
             throw new PagesRequestException("Invalid access token or client credentials: " + e.getStatusCode(), e);
         } catch (HttpServerErrorException e) {
