@@ -89,6 +89,10 @@ public class PagesService {
         return this.pageRepository.save(page);
     }
 
+    public void deleteByNotionId(String notionId) {
+        this.findByNotionId(notionId).ifPresent(this.pageRepository::delete);
+    }
+
     public List<PageDetailsDto> getPagesByWorkspaceId(String workspaceId) {
         return this.pageRepository.findByWorkspaceId(workspaceId).stream()
                 .map(page -> new PageDetailsDto(

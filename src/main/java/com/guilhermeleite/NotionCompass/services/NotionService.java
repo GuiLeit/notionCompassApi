@@ -40,11 +40,9 @@ public class NotionService {
     public void init() {
         this.webhookEventHandlers = new HashMap<>();
         webhookEventHandlers.put("page.created", this::handlePageCreated);
-        webhookEventHandlers.put("page.updated", this::handlePageUpdated);
+        webhookEventHandlers.put("page.properties_updated", this::handlePageUpdated);
         webhookEventHandlers.put("page.deleted", this::handlePageDeleted);
-        webhookEventHandlers.put("database.created", this::handleDatabaseCreated);
-        webhookEventHandlers.put("database.updated", this::handleDatabaseUpdated);
-        webhookEventHandlers.put("database.deleted", this::handleDatabaseDeleted);
+        webhookEventHandlers.put("page.moved", this::handlePageMoved);
     }
 
     public User handleOauthCallback(String code) {
@@ -86,28 +84,19 @@ public class NotionService {
     }
 
     private void handlePageUpdated(NotionWebhookPayloadDto payload) {
-        log.info("Processing page.updated event for page: {}", payload.getEntity().getId());
-        // TODO: Implement page update logic
+        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found for ID: " + payload.getWorkspaceId(), null));
+        this.pagesService.getPageFromNotionApi(workspace, payload.getEntity().getId());
     }
 
     private void handlePageDeleted(NotionWebhookPayloadDto payload) {
-        log.info("Processing page.deleted event for page: {}", payload.getEntity().getId());
-        // TODO: Implement page deletion logic
+        this.pagesService.deleteByNotionId(payload.getEntity().getId());
     }
 
-    private void handleDatabaseCreated(NotionWebhookPayloadDto payload) {
-        log.info("Processing database.created event for database: {}", payload.getEntity().getId());
-        // TODO: Implement database creation logic
-    }
-
-    private void handleDatabaseUpdated(NotionWebhookPayloadDto payload) {
-        log.info("Processing database.updated event for database: {}", payload.getEntity().getId());
-        // TODO: Implement database update logic
-    }
-
-    private void handleDatabaseDeleted(NotionWebhookPayloadDto payload) {
-        log.info("Processing database.deleted event for database: {}", payload.getEntity().getId());
-        // TODO: Implement database deletion logic
+    private void handlePageMoved(NotionWebhookPayloadDto payload) {
+        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found for ID: " + payload.getWorkspaceId(), null));
+        this.pagesService.getPageFromNotionApi(workspace, payload.getEntity().getId());
     }
 
     public boolean isWebhookSignatureValid(String webhookSignature, String requestBody) {
