@@ -10,6 +10,9 @@ import java.util.List;
 @Getter
 @Setter
 public class NotionWebhookPayloadDto {
+    @JsonProperty("verification_token")
+    private String verificationToken;
+
     @JsonProperty("id")
     private String id;
 

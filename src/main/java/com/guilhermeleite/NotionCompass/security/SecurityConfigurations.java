@@ -27,7 +27,7 @@ public class SecurityConfigurations {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.GET, "/", "/notion/auth/login", "/notion/auth/callback").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/webhook/secret", "/notion/auth/login", "/notion/auth/callback").permitAll()
                         .requestMatchers(HttpMethod.POST, "/webhook").permitAll()
                         .anyRequest().authenticated()
                 )
