@@ -12,6 +12,8 @@ import com.guilhermeleite.NotionCompass.repositories.PageRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -29,6 +31,7 @@ public class PagesService {
     private final PageRepository pageRepository;
     private final NotionProperties notionProperties;
     private final RestTemplate restTemplate;
+//    private WorkspaceService workspaceService;
     private static final Logger log = LoggerFactory.getLogger(ExceptionEntityHandler.class);
 
     private Optional<RawPageDto> mapPageObjectToDto(JsonNode pageObj) {
@@ -132,6 +135,9 @@ public class PagesService {
 
         }
 
+        // Update workspace timestamp after fetching pages
+//        this.workspaceService.touchWorkspace(workspace);
+
         return pages;
     }
 
@@ -144,7 +150,7 @@ public class PagesService {
             return null;
         }
 
-        return this.createOrUpdate(new CreatePageDto(
+        Page page = this.createOrUpdate(new CreatePageDto(
                 workspace,
                 pageDto.notionPageId(),
                 pageDto.parentId(),
@@ -152,6 +158,18 @@ public class PagesService {
                 pageDto.icon(),
                 pageDto.url()
         ));
+
+        // Update workspace timestamp after fetching page
+//        this.workspaceService.touchWorkspace(workspace);
+
+        return page;
+    }
+
+    public void deletePage(Workspace workspace, String notionPageId) {
+        this.deleteByNotionId(notionPageId);
+
+        // Update workspace timestamp after deleting page
+//        this.workspaceService.touchWorkspace(workspace);
     }
 
     private JsonNode fetchPages(String workspaceAccessToken) {

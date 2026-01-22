@@ -30,7 +30,8 @@ public class WorkspaceService {
         return new WorkspaceDetailsDto(
                 workspace.getId(),
                 workspace.getName(),
-                workspace.getIcon()
+                workspace.getIcon(),
+                workspace.getUpdatedAt()
         );
     }
 
@@ -58,6 +59,14 @@ public class WorkspaceService {
         return workspaceRepository.save(workspace);
     }
 
+    /**
+     * Updates the workspace's updated_at timestamp.
+     * Used to track the last time pages were fetched or webhook event was received.
+     */
+    public void touchWorkspace(Workspace workspace) {
+        workspaceRepository.save(workspace);
+    }
+
     // Dto methods
     public WorkspaceDetailsDto getWorkspaceById(String id) {
         Workspace workspace = this.findById(id)
@@ -83,6 +92,7 @@ public class WorkspaceService {
                     workspace.getId(),
                     workspace.getName(),
                     workspace.getIcon(),
+                    workspace.getUpdatedAt(),
                     this.pagesService.getPagesByWorkspaceId(workspace.getId())
             ));
         }

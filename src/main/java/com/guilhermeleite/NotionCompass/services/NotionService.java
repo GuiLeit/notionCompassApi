@@ -90,7 +90,9 @@ public class NotionService {
     }
 
     private void handlePageDeleted(NotionWebhookPayloadDto payload) {
-        this.pagesService.deleteByNotionId(payload.getEntity().getId());
+        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found for ID: " + payload.getWorkspaceId(), null));
+        this.pagesService.deletePage(workspace, payload.getEntity().getId());
     }
 
     private void handlePageMoved(NotionWebhookPayloadDto payload) {

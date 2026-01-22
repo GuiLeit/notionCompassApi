@@ -19,7 +19,7 @@ public class WebhookController {
 
     private final NotionService notionService;
     private final NotionProperties notionProperties;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Value("${app.internal.validation.token}")
     private String internalValidationToken;
@@ -29,7 +29,7 @@ public class WebhookController {
             @RequestHeader("x-notion-signature") String notionSignature,
             @RequestBody String requestBody
     ) throws Exception {
-        NotionWebhookPayloadDto payload = mapper.readValue(requestBody, NotionWebhookPayloadDto.class);
+        NotionWebhookPayloadDto payload = objectMapper.readValue(requestBody, NotionWebhookPayloadDto.class);
 
         if (payload.getVerificationToken() != null) {
             notionProperties.setWebhookSecret(payload.getVerificationToken());

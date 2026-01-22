@@ -1,5 +1,6 @@
 package com.guilhermeleite.NotionCompass.dtos.notion;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,6 +41,9 @@ public class NotionWebhookPayloadDto {
     @JsonProperty("attempt_number")
     private Integer attemptNumber;
 
+    @JsonProperty("api_version")
+    private String apiVersion;
+
     @JsonProperty("entity")
     private SimpleEntity entity;
 
@@ -61,6 +65,7 @@ public class NotionWebhookPayloadDto {
 
     @Getter
     @Setter
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Data {
         @JsonProperty("parent")
         private ParentData parent;
