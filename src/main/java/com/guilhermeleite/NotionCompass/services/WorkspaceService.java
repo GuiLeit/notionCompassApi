@@ -9,6 +9,8 @@ import com.guilhermeleite.NotionCompass.dtos.workspace.*;
 import com.guilhermeleite.NotionCompass.repositories.WorkspaceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,7 +26,9 @@ public class WorkspaceService {
     private final NotionProperties notionProperties;
     private final RestTemplate restTemplate;
     private final WorkspaceRepository workspaceRepository;
-    private final PagesService pagesService;
+    @Lazy
+    @Autowired
+    private PagesService pagesService;
 
     private WorkspaceDetailsDto mapToDetailsDto(Workspace workspace) {
         return new WorkspaceDetailsDto(
@@ -64,6 +68,7 @@ public class WorkspaceService {
      * Used to track the last time pages were fetched or webhook event was received.
      */
     public void touchWorkspace(Workspace workspace) {
+        workspace.setUpdatedAt(java.time.LocalDateTime.now());
         workspaceRepository.save(workspace);
     }
 

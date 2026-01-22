@@ -31,7 +31,9 @@ public class PagesService {
     private final PageRepository pageRepository;
     private final NotionProperties notionProperties;
     private final RestTemplate restTemplate;
-//    private WorkspaceService workspaceService;
+    @Lazy
+    @Autowired
+    private WorkspaceService workspaceService;
     private static final Logger log = LoggerFactory.getLogger(ExceptionEntityHandler.class);
 
     private Optional<RawPageDto> mapPageObjectToDto(JsonNode pageObj) {
@@ -136,7 +138,7 @@ public class PagesService {
         }
 
         // Update workspace timestamp after fetching pages
-//        this.workspaceService.touchWorkspace(workspace);
+        this.workspaceService.touchWorkspace(workspace);
 
         return pages;
     }
@@ -160,7 +162,7 @@ public class PagesService {
         ));
 
         // Update workspace timestamp after fetching page
-//        this.workspaceService.touchWorkspace(workspace);
+        this.workspaceService.touchWorkspace(workspace);
 
         return page;
     }
@@ -169,7 +171,7 @@ public class PagesService {
         this.deleteByNotionId(notionPageId);
 
         // Update workspace timestamp after deleting page
-//        this.workspaceService.touchWorkspace(workspace);
+        this.workspaceService.touchWorkspace(workspace);
     }
 
     private JsonNode fetchPages(String workspaceAccessToken) {
