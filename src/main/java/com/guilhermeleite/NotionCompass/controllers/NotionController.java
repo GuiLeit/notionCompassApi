@@ -6,14 +6,15 @@ import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsListDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.WorkspaceDetailsWithPagesListDto;
 import com.guilhermeleite.NotionCompass.services.WorkspaceService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -50,5 +51,15 @@ public class NotionController {
     public ResponseEntity<List<PageDetailsDto>> getWorkspacePages(@PathVariable String workspaceId) {
         List<PageDetailsDto> pages = this.workspaceService.getWorkspacePagesById(workspaceId);
         return ResponseEntity.ok(pages);
+    }
+
+    @GetMapping("/workspaces/sync-status")
+    public ResponseEntity<Map<String, Boolean>> areWorkspacesSynced(
+            @Valid @RequestParam @NotNull(message = "lastSync must not be null") LocalDateTime lastSync
+    ){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Boolean isSynced = this.workspaceService.areWorkspacesSyncedSince(user.getId(), lastSync);
+        return ResponseEntity.ok(Map.of("isSynced", isSynced));
     }
 }

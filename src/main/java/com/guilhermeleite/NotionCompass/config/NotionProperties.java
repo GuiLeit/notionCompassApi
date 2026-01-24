@@ -25,8 +25,10 @@ public class NotionProperties {
     private String clientSecret;
     private String authorizationUrl;
     private String redirectUri;
+    private String webhookSecret;
     private String tokenUrl;
     private String pagesUrl;
+    private String baseNotionRoute;
 
     @Value("${app.extension.id}")
     private String extentionId;
@@ -35,6 +37,7 @@ public class NotionProperties {
         this.authorizationUrl = "https://api.notion.com/v1/oauth/authorize";
         this.tokenUrl = "https://api.notion.com/v1/oauth/token";
         this.pagesUrl = "https://api.notion.com/v1/search";
+        this.baseNotionRoute = "https://api.notion.com/v1";
     }
 
     public URI getCallbackUri() {

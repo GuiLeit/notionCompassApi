@@ -12,8 +12,11 @@ import com.guilhermeleite.NotionCompass.repositories.PageRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
@@ -28,6 +31,9 @@ public class PagesService {
     private final PageRepository pageRepository;
     private final NotionProperties notionProperties;
     private final RestTemplate restTemplate;
+    @Lazy
+    @Autowired
+    private WorkspaceService workspaceService;
     private static final Logger log = LoggerFactory.getLogger(ExceptionEntityHandler.class);
 
     private Optional<RawPageDto> mapPageObjectToDto(JsonNode pageObj) {
@@ -88,6 +94,10 @@ public class PagesService {
         return this.pageRepository.save(page);
     }
 
+    public void deleteByNotionId(String notionId) {
+        this.findByNotionId(notionId).ifPresent(this.pageRepository::delete);
+    }
+
     public List<PageDetailsDto> getPagesByWorkspaceId(String workspaceId) {
         return this.pageRepository.findByWorkspaceId(workspaceId).stream()
                 .map(page -> new PageDetailsDto(
@@ -101,7 +111,7 @@ public class PagesService {
                 .toList();
     }
 
-    public List<PageDetailsDto> fetchPagesByWorkspace(Workspace workspace) {
+    public List<PageDetailsDto> getPagesFromNotionApi(Workspace workspace) {
         JsonNode response = this.fetchPages(workspace.getAccessToken());
         List<PageDetailsDto> pages = new ArrayList<>();
 
@@ -127,7 +137,41 @@ public class PagesService {
 
         }
 
+        // Update workspace timestamp after fetching pages
+        this.workspaceService.touchWorkspace(workspace);
+
         return pages;
+    }
+
+    public Page getPageFromNotionApi(Workspace workspace, String pageId) {
+        JsonNode response = this.fetchPageById(workspace.getAccessToken(), pageId);
+        RawPageDto pageDto = this.mapPageObjectToDto(response)
+                .orElse(null);
+
+        if(pageDto == null) {
+            return null;
+        }
+
+        Page page = this.createOrUpdate(new CreatePageDto(
+                workspace,
+                pageDto.notionPageId(),
+                pageDto.parentId(),
+                pageDto.title(),
+                pageDto.icon(),
+                pageDto.url()
+        ));
+
+        // Update workspace timestamp after fetching page
+        this.workspaceService.touchWorkspace(workspace);
+
+        return page;
+    }
+
+    public void deletePage(Workspace workspace, String notionPageId) {
+        this.deleteByNotionId(notionPageId);
+
+        // Update workspace timestamp after deleting page
+        this.workspaceService.touchWorkspace(workspace);
     }
 
     private JsonNode fetchPages(String workspaceAccessToken) {
@@ -145,6 +189,33 @@ public class PagesService {
                     request,
                     JsonNode.class
             );
+        } catch (HttpClientErrorException e) {
+            throw new PagesRequestException("Invalid access token or client credentials: " + e.getStatusCode(), e);
+        } catch (HttpServerErrorException e) {
+            throw new PagesRequestException("Notion API server error: " + e.getStatusCode(), e);
+        } catch (ResourceAccessException e) {
+            throw new PagesRequestException("Failed to connect to Notion API", e);
+        } catch (RestClientException e) {
+            throw new PagesRequestException("Invalid access token: " + e.getLocalizedMessage(), e);
+        }
+    }
+
+    private JsonNode fetchPageById(String workspaceAccessToken, String pageId) {
+        //Headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Notion-Version", "2022-06-28");
+        headers.add("Authorization", workspaceAccessToken);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(new HashMap<>(), headers);
+
+        try {
+            return restTemplate.exchange(
+                    this.notionProperties.getBaseNotionRoute() + "/pages/" + pageId,
+                    HttpMethod.GET,
+                    request,
+                    JsonNode.class
+            ).getBody();
         } catch (HttpClientErrorException e) {
             throw new PagesRequestException("Invalid access token or client credentials: " + e.getStatusCode(), e);
         } catch (HttpServerErrorException e) {

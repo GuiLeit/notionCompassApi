@@ -1,5 +1,6 @@
 package com.guilhermeleite.NotionCompass.config;
 
+import com.guilhermeleite.NotionCompass.config.exceptions.EntityNotFoundException;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.PagesRequestException;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
 import com.guilhermeleite.NotionCompass.dtos.ErrorResponseDto;
@@ -17,6 +18,14 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 @ControllerAdvice
 public class ExceptionEntityHandler {
     private static final Logger log = LoggerFactory.getLogger(ExceptionEntityHandler.class);
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleEntityNotFoundException(EntityNotFoundException e) {
+        log.error("Entity not found: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponseDto(e.getMessage()));
+    }
 
     @ExceptionHandler(WorkspaceRequestException.class)
     public ResponseEntity<ErrorResponseDto> handleWorkspaceRequestException(WorkspaceRequestException e) {

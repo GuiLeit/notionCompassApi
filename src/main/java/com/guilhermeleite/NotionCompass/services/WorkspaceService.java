@@ -3,18 +3,21 @@ package com.guilhermeleite.NotionCompass.services;
 import com.guilhermeleite.NotionCompass.config.NotionProperties;
 import com.guilhermeleite.NotionCompass.domains.workspace.Workspace;
 import com.guilhermeleite.NotionCompass.domains.workspace.exceptions.WorkspaceRequestException;
-import com.guilhermeleite.NotionCompass.dtos.NotionWorkspaceResponseDto;
+import com.guilhermeleite.NotionCompass.dtos.notion.NotionWorkspaceResponseDto;
 import com.guilhermeleite.NotionCompass.dtos.page.PageDetailsDto;
 import com.guilhermeleite.NotionCompass.dtos.workspace.*;
 import com.guilhermeleite.NotionCompass.repositories.WorkspaceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -24,13 +27,16 @@ public class WorkspaceService {
     private final NotionProperties notionProperties;
     private final RestTemplate restTemplate;
     private final WorkspaceRepository workspaceRepository;
-    private final PagesService pagesService;
+    @Lazy
+    @Autowired
+    private PagesService pagesService;
 
     private WorkspaceDetailsDto mapToDetailsDto(Workspace workspace) {
         return new WorkspaceDetailsDto(
                 workspace.getId(),
                 workspace.getName(),
-                workspace.getIcon()
+                workspace.getIcon(),
+                workspace.getUpdatedAt()
         );
     }
 
@@ -58,6 +64,22 @@ public class WorkspaceService {
         return workspaceRepository.save(workspace);
     }
 
+    /**
+     * Updates the workspace's updated_at timestamp.
+     * Used to track the last time pages were fetched or webhook event was received.
+     */
+    public void touchWorkspace(Workspace workspace) {
+        workspace.setUpdatedAt(java.time.LocalDateTime.now());
+        workspaceRepository.save(workspace);
+    }
+
+    public LocalDateTime getLastUpdatedAt(List<Workspace> workspaces) {
+        return workspaces.stream()
+                .map(Workspace::getUpdatedAt)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
     // Dto methods
     public WorkspaceDetailsDto getWorkspaceById(String id) {
         Workspace workspace = this.findById(id)
@@ -72,7 +94,10 @@ public class WorkspaceService {
                 .map(this::mapToDetailsDto)
                 .toList();
 
-        return new WorkspaceDetailsListDto(workspaceDetailsDtos);
+        return new WorkspaceDetailsListDto(
+                this.getLastUpdatedAt(workspaces),
+                workspaceDetailsDtos
+        );
     }
 
     public WorkspaceDetailsWithPagesListDto getWorkspacesWithPagesByUserId(Long userId) {
@@ -83,18 +108,32 @@ public class WorkspaceService {
                     workspace.getId(),
                     workspace.getName(),
                     workspace.getIcon(),
+                    workspace.getUpdatedAt(),
                     this.pagesService.getPagesByWorkspaceId(workspace.getId())
             ));
         }
 
-        return new WorkspaceDetailsWithPagesListDto(workspacesDtoList);
+        return new WorkspaceDetailsWithPagesListDto(
+                this.getLastUpdatedAt(workspaces),
+                workspacesDtoList
+        );
     }
 
     public List<PageDetailsDto> getWorkspacePagesById(String id) {
         Workspace workspace = this.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
-        return this.pagesService.fetchPagesByWorkspace(workspace);
+        return this.pagesService.getPagesFromNotionApi(workspace);
+    }
+
+    public boolean areWorkspacesSyncedSince(Long userId, LocalDateTime lastSync) {
+        List<Workspace> workspaces = this.findByUserId(userId);
+        for (Workspace workspace : workspaces) {
+            if (workspace.getUpdatedAt().isAfter(lastSync)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {
