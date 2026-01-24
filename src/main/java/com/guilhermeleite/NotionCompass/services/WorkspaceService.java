@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -72,6 +73,13 @@ public class WorkspaceService {
         workspaceRepository.save(workspace);
     }
 
+    public LocalDateTime getLastUpdatedAt(List<Workspace> workspaces) {
+        return workspaces.stream()
+                .map(Workspace::getUpdatedAt)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
     // Dto methods
     public WorkspaceDetailsDto getWorkspaceById(String id) {
         Workspace workspace = this.findById(id)
@@ -86,7 +94,10 @@ public class WorkspaceService {
                 .map(this::mapToDetailsDto)
                 .toList();
 
-        return new WorkspaceDetailsListDto(workspaceDetailsDtos);
+        return new WorkspaceDetailsListDto(
+                this.getLastUpdatedAt(workspaces),
+                workspaceDetailsDtos
+        );
     }
 
     public WorkspaceDetailsWithPagesListDto getWorkspacesWithPagesByUserId(Long userId) {
@@ -102,7 +113,10 @@ public class WorkspaceService {
             ));
         }
 
-        return new WorkspaceDetailsWithPagesListDto(workspacesDtoList);
+        return new WorkspaceDetailsWithPagesListDto(
+                this.getLastUpdatedAt(workspaces),
+                workspacesDtoList
+        );
     }
 
     public List<PageDetailsDto> getWorkspacePagesById(String id) {
@@ -110,6 +124,16 @@ public class WorkspaceService {
                 .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
         return this.pagesService.getPagesFromNotionApi(workspace);
+    }
+
+    public boolean areWorkspacesSyncedSince(Long userId, LocalDateTime lastSync) {
+        List<Workspace> workspaces = this.findByUserId(userId);
+        for (Workspace workspace : workspaces) {
+            if (workspace.getUpdatedAt().isAfter(lastSync)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public NotionWorkspaceResponseDto exchangeCodeForWorkspaceData(String code) {
