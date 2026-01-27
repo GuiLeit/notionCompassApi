@@ -22,6 +22,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Service
@@ -78,26 +79,38 @@ public class NotionService {
     }
 
     private void handlePageCreated(NotionWebhookPayloadDto payload) {
-        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
-                .orElseThrow(() -> new EntityNotFoundException("Workspace not found for ID: " + payload.getWorkspaceId(), null));
+        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId()).orElse(null);
+        if(workspace == null) {
+            log.warn("No workspace found for id: {}", payload.getWorkspaceId());
+            return;
+        }
         this.pagesService.getPageFromNotionApi(workspace, payload.getEntity().getId());
     }
 
     private void handlePageUpdated(NotionWebhookPayloadDto payload) {
-        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
-                .orElseThrow(() -> new EntityNotFoundException("Workspace not found for ID: " + payload.getWorkspaceId(), null));
+        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId()).orElse(null);
+        if(workspace == null) {
+            log.warn("No workspace found for id: {}", payload.getWorkspaceId());
+            return;
+        }
         this.pagesService.getPageFromNotionApi(workspace, payload.getEntity().getId());
     }
 
     private void handlePageDeleted(NotionWebhookPayloadDto payload) {
-        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
-                .orElseThrow(() -> new EntityNotFoundException("Workspace not found for ID: " + payload.getWorkspaceId(), null));
+        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId()).orElse(null);
+        if(workspace == null) {
+            log.warn("No workspace found for id: {}", payload.getWorkspaceId());
+            return;
+        }
         this.pagesService.deletePage(workspace, payload.getEntity().getId());
     }
 
     private void handlePageMoved(NotionWebhookPayloadDto payload) {
-        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId())
-                .orElseThrow(() -> new EntityNotFoundException("Workspace not found for ID: " + payload.getWorkspaceId(), null));
+        Workspace workspace = this.workspaceService.findByNotionId(payload.getWorkspaceId()).orElse(null);
+        if(workspace == null) {
+            log.warn("No workspace found for id: {}", payload.getWorkspaceId());
+            return;
+        }
         this.pagesService.getPageFromNotionApi(workspace, payload.getEntity().getId());
     }
 

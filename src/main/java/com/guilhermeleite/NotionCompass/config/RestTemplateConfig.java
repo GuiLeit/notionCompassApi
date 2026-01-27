@@ -12,7 +12,7 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() {
         // Use a buffering request factory so response bodies can be read multiple times by interceptors/loggers
         RestTemplate restTemplate = new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
-        restTemplate.getInterceptors().add(new LoggingInterceptor());
+        // restTemplate.getInterceptors().add(new LoggingInterceptor());
         return restTemplate;
     }
 }
