@@ -126,7 +126,7 @@ public class ExceptionEntityHandler {
         log.error("Non mapped error: {}", e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseDto("An unexpected error occurred: " + e.getMessage()));
+                .body(new ErrorResponseDto("An unexpected error occurred. Please try again later."));
     }
 }
 
